@@ -39,16 +39,12 @@ URL:            http://www.nvidia.com/object/unix.html
 BuildArch:      noarch
 
 Source20:       nvidia.conf
-Source21:       60-nvidia-drm.rules
-Source22:       60-nvidia-uvm.rules
-Source23:       nvidia-uvm.conf
-Source24:       99-nvidia-dracut.conf
+Source21:       60-nvidia.rules
+Source24:       99-nvidia.conf
 
 # Auto-fallback to nouveau, requires server 1.19.0-3+, glvnd enabled mesa:
 Source50:       nvidia-fallback.service
 Source51:       95-nvidia-fallback.preset
-
-Source99:       nvidia-generate-tarballs.sh
 
 %if 0%{?fedora} || 0%{?rhel} >= 7
 # UDev rule location (_udevrulesdir) and systemd macros:
@@ -74,11 +70,8 @@ mkdir -p %{buildroot}%{_unitdir}
 mkdir -p %{buildroot}%{_presetdir}
 %endif
 
-# Blacklist nouveau:
+# Blacklist nouveau and load nvidia-uvm:
 install -p -m 0644 %{SOURCE20} %{buildroot}%{_modprobe_d}/
-
-# Autoload nvidia-uvm module after nvidia module:
-install -p -m 0644 %{SOURCE23} %{buildroot}%{_modprobe_d}/
 
 # Avoid Nvidia modules getting in the initrd:
 install -p -m 0644 %{SOURCE24} %{buildroot}%{_dracut_conf_d}/
@@ -92,7 +85,7 @@ install -p -m 0644 %{SOURCE51} %{buildroot}%{_presetdir}
 # UDev rules:
 # https://github.com/NVIDIA/nvidia-modprobe/blob/master/modprobe-utils/nvidia-modprobe-utils.h#L33-L46
 # https://github.com/negativo17/nvidia-driver/issues/27
-install -p -m 644 %{SOURCE21} %{SOURCE22} %{buildroot}%{_udevrulesdir}
+install -p -m 644 %{SOURCE21} %{buildroot}%{_udevrulesdir}
 
 # Apply the systemd preset for nvidia-fallback.service when upgrading from
 # a version without nvidia-fallback.service, as %%systemd_post only does this
@@ -149,11 +142,9 @@ fi ||:
 %{_unitdir}/nvidia-fallback.service
 %{_presetdir}/95-nvidia-fallback.preset
 %endif
-%{_dracut_conf_d}/99-nvidia-dracut.conf
+%{_dracut_conf_d}/99-nvidia.conf
 %{_modprobe_d}/nvidia.conf
-%{_modprobe_d}/nvidia-uvm.conf
-%{_udevrulesdir}/60-nvidia-drm.rules
-%{_udevrulesdir}/60-nvidia-uvm.rules
+%{_udevrulesdir}/60-nvidia.rules
 
 %changelog
 * Sun Feb 03 2019 Simone Caronni <negativo17@gmail.com> - 3:415.27-1
