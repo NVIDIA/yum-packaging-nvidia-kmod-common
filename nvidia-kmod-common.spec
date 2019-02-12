@@ -49,6 +49,8 @@ Source51:       95-nvidia-fallback.preset
 %if 0%{?fedora} || 0%{?rhel} >= 7
 # UDev rule location (_udevrulesdir) and systemd macros:
 BuildRequires:  systemd
+# Nouveau fallback service
+%{?systemd_requires}
 %endif
 
 Requires:       grubby
