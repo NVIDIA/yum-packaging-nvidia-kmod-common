@@ -56,6 +56,7 @@ BuildRequires:  systemd
 Requires:       grubby
 Requires:       nvidia-kmod = %{?epoch:%{epoch}:}%{version}
 Provides:       nvidia-kmod-common = %{?epoch:%{epoch}:}%{version}
+Obsoletes:      cuda-nvidia-kmod-common
 
 %description
 This package provides the common files required by all NVIDIA kernel module
