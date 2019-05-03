@@ -19,9 +19,9 @@
 
 %if 0%{?fedora} || 0%{?rhel} >= 8
 %global _dracutopts     rd.driver.blacklist=nouveau
-# Fallback service tries to load nouveau if nvidia is not loaded, so don't
-# disable nouveau at boot. Just matching the driver with OutputClass in the
-# X.org configuration is enough to load the whole Nvidia stack or the Mesa one:
+# Don't disable nouveau at boot. Just matching the driver with OutputClass in
+# the X.org configuration is enough to load the whole Nvidia stack or the Mesa
+# one:
 %global _dracutopts_rm  nomodeset gfxpayload=vga=normal nouveau.modeset=0 nvidia-drm.modeset=1
 %global _dracut_conf_d  %{_prefix}/lib/dracut/dracut.conf.d
 %global _modprobe_d     %{_prefix}/lib/modprobe.d/
@@ -42,15 +42,9 @@ Source20:       nvidia.conf
 Source21:       60-nvidia.rules
 Source24:       99-nvidia.conf
 
-# Auto-fallback to nouveau, requires server 1.19.0-3+, glvnd enabled mesa:
-Source50:       nvidia-fallback.service
-Source51:       95-nvidia-fallback.preset
-
 %if 0%{?fedora} || 0%{?rhel} >= 7
 # UDev rule location (_udevrulesdir) and systemd macros:
 BuildRequires:  systemd
-# Nouveau fallback service
-%{?systemd_requires}
 %endif
 
 Requires:       grubby
@@ -79,24 +73,10 @@ install -p -m 0644 %{SOURCE20} %{buildroot}%{_modprobe_d}/
 # Avoid Nvidia modules getting in the initrd:
 install -p -m 0644 %{SOURCE24} %{buildroot}%{_dracut_conf_d}/
 
-%if 0%{?fedora}
-# install auto-fallback to nouveau service:
-install -p -m 0644 %{SOURCE50} %{buildroot}%{_unitdir}
-install -p -m 0644 %{SOURCE51} %{buildroot}%{_presetdir}
-%endif
-
 # UDev rules:
 # https://github.com/NVIDIA/nvidia-modprobe/blob/master/modprobe-utils/nvidia-modprobe-utils.h#L33-L46
 # https://github.com/negativo17/nvidia-driver/issues/27
 install -p -m 644 %{SOURCE21} %{buildroot}%{_udevrulesdir}
-
-# Apply the systemd preset for nvidia-fallback.service when upgrading from
-# a version without nvidia-fallback.service, as %%systemd_post only does this
-# on fresh installs:
-%if 0%{?fedora}
-%triggerun -- %{name} < 2:381.22-2
-systemctl --no-reload preset nvidia-fallback.service >/dev/null 2>&1 || :
-%endif
 
 %post
 %{_grubby} --args='%{_dracutopts}' --remove-args='%{_dracutopts_rm}' &>/dev/null
@@ -116,9 +96,6 @@ else
   sed -i -e "s|^GRUB_CMDLINE_LINUX=.*|GRUB_CMDLINE_LINUX=\"${GRUB_CMDLINE_LINUX}\"|g" %{_sysconfdir}/default/grub
 fi
 %endif
-%if 0%{?fedora} || 0%{?rhel} >= 8
-%systemd_post nvidia-fallback.service
-%endif
 
 %preun
 if [ "$1" -eq "0" ]; then
@@ -131,20 +108,8 @@ if [ "$1" -eq "0" ]; then
   sed -i -e "s|^GRUB_CMDLINE_LINUX=.*|GRUB_CMDLINE_LINUX=\"${GRUB_CMDLINE_LINUX}\"|g" %{_sysconfdir}/default/grub
 %endif
 fi ||:
-%if 0%{?fedora} || 0%{?rhel} >= 8
-%systemd_preun nvidia-fallback.service
-%endif
-
-%if 0%{?fedora} || 0%{?rhel} >= 8
-%postun
-%systemd_postun nvidia-fallback.service
-%endif
 
 %files
-%if 0%{?fedora}
-%{_unitdir}/nvidia-fallback.service
-%{_presetdir}/95-nvidia-fallback.preset
-%endif
 %{_dracut_conf_d}/99-nvidia.conf
 %{_modprobe_d}/nvidia.conf
 %{_udevrulesdir}/60-nvidia.rules
