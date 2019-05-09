@@ -117,6 +117,7 @@ fi ||:
 %changelog
 * Thu May 09 2019 Simone Caronni <negativo17@gmail.com> - 3:418.74-1
 - Update to 418.74.
+- Remove fallback scenario (thanks Karol Herbst).
 
 * Thu Apr 18 2019 Simone Caronni <negativo17@gmail.com> - 3:418.56-2
 - Obsoletes cuda-nvidia-kmod-common (thanks Timm).
