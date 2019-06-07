@@ -50,6 +50,7 @@ BuildRequires:  systemd
 Requires:       grubby
 Requires:       nvidia-kmod = %{?epoch:%{epoch}:}%{version}
 Provides:       nvidia-kmod-common = %{?epoch:%{epoch}:}%{version}
+Requires:       nvidia-driver = %{?epoch:%{epoch}:}%{version}
 Obsoletes:      cuda-nvidia-kmod-common
 
 %description
@@ -108,6 +109,14 @@ if [ "$1" -eq "0" ]; then
   sed -i -e "s|^GRUB_CMDLINE_LINUX=.*|GRUB_CMDLINE_LINUX=\"${GRUB_CMDLINE_LINUX}\"|g" %{_sysconfdir}/default/grub
 %endif
 fi ||:
+%if 0%{?fedora} || 0%{?rhel} >= 8
+%systemd_preun nvidia-fallback.service
+%endif
+
+%if 0%{?fedora} || 0%{?rhel} >= 8
+%postun
+%systemd_postun nvidia-fallback.service
+%endif
 
 %files
 %{_dracut_conf_d}/99-nvidia.conf
