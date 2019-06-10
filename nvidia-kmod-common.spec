@@ -36,8 +36,6 @@ Epoch:          3
 License:        NVIDIA License
 URL:            http://www.nvidia.com/object/unix.html
 
-BuildArch:      noarch
-
 Source20:       nvidia.conf
 Source21:       60-nvidia.rules
 Source24:       99-nvidia.conf
