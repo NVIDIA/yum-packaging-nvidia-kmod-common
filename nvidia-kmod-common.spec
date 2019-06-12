@@ -29,8 +29,8 @@
 %endif
 
 Name:           nvidia-kmod-common
-Version:        430.14
-Release:        2%{?dist}
+Version:        430.26
+Release:        1%{?dist}
 Summary:        Common file for NVIDIA's proprietary driver kernel modules
 Epoch:          3
 License:        NVIDIA License
@@ -119,6 +119,9 @@ fi ||:
 %{_udevrulesdir}/60-nvidia.rules
 
 %changelog
+* Wed Jun 12 2019 Simone Caronni <negativo17@gmail.com> - 3:430.26-1
+- Update to 430.26.
+
 * Thu Jun 06 2019 Simone Caronni <negativo17@gmail.com> - 3:430.14-2
 - Do not run post/preun scriptlets on Atomic/Silverblue.
 
