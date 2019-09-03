@@ -29,7 +29,7 @@
 %endif
 
 Name:           nvidia-kmod-common
-Version:        435.17
+Version:        435.21
 Release:        1%{?dist}
 Summary:        Common file for NVIDIA's proprietary driver kernel modules
 Epoch:          3
@@ -122,6 +122,9 @@ fi ||:
 %{_udevrulesdir}/60-nvidia.rules
 
 %changelog
+* Tue Sep 03 2019 Simone Caronni <negativo17@gmail.com> - 3:435.21-1
+- Update to 435.21.
+
 * Thu Aug 22 2019 Simone Caronni <negativo17@gmail.com> - 3:435.17-1
 - Update to 435.17.
 - Add power management functions as per documentation.
