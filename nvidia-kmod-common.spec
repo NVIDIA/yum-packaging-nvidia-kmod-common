@@ -43,10 +43,10 @@ Source21:       60-nvidia.rules
 Source24:       99-nvidia.conf
 
 # UDev rule location (_udevrulesdir) and systemd macros:
-%if 0%{?fedora} || 0%{?rhel} >= 8
+%if 0%{?fedora} >= 30 || 0%{?rhel} >= 8
 BuildRequires:  systemd-rpm-macros
 %endif
-%if 0%{?rhel} == 7
+%if 0%{?fedora} == 29 || 0%{?rhel} == 7
 BuildRequires:  systemd
 %endif
 
