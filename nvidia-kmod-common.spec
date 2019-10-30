@@ -29,8 +29,8 @@
 %endif
 
 Name:           nvidia-kmod-common
-Version:        430.40
-Release:        1%{?dist}
+Version:        435.21
+Release:        3%{?dist}
 Summary:        Common file for NVIDIA's proprietary driver kernel modules
 Epoch:          3
 License:        NVIDIA License
@@ -40,8 +40,11 @@ Source20:       nvidia.conf
 Source21:       60-nvidia.rules
 Source24:       99-nvidia.conf
 
-%if 0%{?fedora} || 0%{?rhel} >= 7
 # UDev rule location (_udevrulesdir) and systemd macros:
+%if 0%{?fedora} >= 30
+BuildRequires:  systemd-rpm-macros
+%endif
+%if 0%{?fedora} == 29 || 0%{?rhel} == 7 || 0%{?rhel} == 8
 BuildRequires:  systemd
 %endif
 
@@ -117,6 +120,21 @@ fi ||:
 %{_udevrulesdir}/60-nvidia.rules
 
 %changelog
+* Tue Oct 01 2019 Simone Caronni <negativo17@gmail.com> - 3:435.21-3
+- Remove workaround for onboard GPU devices.
+- Fix typo on udev character device rules (thanks tbaederr).
+
+* Tue Oct 01 2019 Simone Caronni <negativo17@gmail.com> - 3:435.21-2
+- Fix build on CentOS/RHEL 8
+
+* Tue Sep 03 2019 Simone Caronni <negativo17@gmail.com> - 3:435.21-1
+- Update to 435.21.
+
+* Thu Aug 22 2019 Simone Caronni <negativo17@gmail.com> - 3:435.17-1
+- Update to 435.17.
+- Add power management functions as per documentation.
+- Require systemd-rpm-macros instead of systemd on Fedora/RHEL 8+.
+
 * Wed Jul 31 2019 Simone Caronni <negativo17@gmail.com> - 3:430.40-1
 - Update to 430.40.
 
