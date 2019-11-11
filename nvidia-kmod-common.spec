@@ -46,7 +46,7 @@ Source24:       99-nvidia.conf
 %if 0%{?fedora} >= 30
 BuildRequires:  systemd-rpm-macros
 %endif
-%if 0%{?fedora} == 29 || 0%{?rhel} == 7 || 0%{?rhel} == 8
+%if 0%{?fedora} == 29 || 0%{?rhel} >= 7
 BuildRequires:  systemd
 %endif
 
@@ -65,10 +65,6 @@ package variants.
 mkdir -p %{buildroot}%{_udevrulesdir}
 mkdir -p %{buildroot}%{_modprobe_d}/
 mkdir -p %{buildroot}%{_dracut_conf_d}/
-%if 0%{?fedora} || 0%{?rhel} >= 8
-mkdir -p %{buildroot}%{_unitdir}
-mkdir -p %{buildroot}%{_presetdir}
-%endif
 
 # Blacklist nouveau and load nvidia-uvm:
 install -p -m 0644 %{SOURCE20} %{buildroot}%{_modprobe_d}/
