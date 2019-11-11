@@ -29,7 +29,7 @@
 %endif
 
 Name:           nvidia-kmod-common
-Version:        430.50
+Version:        440.31
 Release:        1%{?dist}
 Summary:        Common file for NVIDIA's proprietary driver kernel modules
 Epoch:          3
@@ -42,8 +42,11 @@ Source20:       nvidia.conf
 Source21:       60-nvidia.rules
 Source24:       99-nvidia.conf
 
-%if 0%{?fedora} || 0%{?rhel} >= 7
 # UDev rule location (_udevrulesdir) and systemd macros:
+%if 0%{?fedora} >= 30
+BuildRequires:  systemd-rpm-macros
+%endif
+%if 0%{?fedora} == 29 || 0%{?rhel} == 7 || 0%{?rhel} == 8
 BuildRequires:  systemd
 %endif
 
@@ -119,6 +122,9 @@ fi ||:
 %{_udevrulesdir}/60-nvidia.rules
 
 %changelog
+* Mon Nov 11 2019 Simone Caronni <negativo17@gmail.com> - 3:440.31-1
+- Update to 440.31.
+
 * Sat Sep 14 2019 Simone Caronni <negativo17@gmail.com> - 3:430.50-1
 - Update to 430.50.
 
