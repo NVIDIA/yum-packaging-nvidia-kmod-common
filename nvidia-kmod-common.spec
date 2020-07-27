@@ -30,11 +30,13 @@
 
 Name:           nvidia-kmod-common
 Version:        435.21
-Release:        3%{?dist}
+Release:        1%{?dist}
 Summary:        Common file for NVIDIA's proprietary driver kernel modules
 Epoch:          3
 License:        NVIDIA License
 URL:            http://www.nvidia.com/object/unix.html
+
+BuildArch:      noarch
 
 Source20:       nvidia.conf
 Source21:       60-nvidia.rules
