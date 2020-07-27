@@ -51,6 +51,7 @@ BuildRequires:  systemd
 Requires:       grubby
 Requires:       nvidia-kmod = %{?epoch:%{epoch}:}%{version}
 Provides:       nvidia-kmod-common = %{?epoch:%{epoch}:}%{version}
+Requires:       nvidia-driver = %{?epoch:%{epoch}:}%{version}
 Obsoletes:      cuda-nvidia-kmod-common
 
 %description
