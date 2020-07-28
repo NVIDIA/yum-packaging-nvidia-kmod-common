@@ -88,7 +88,7 @@ checkGrubby=$?
 if [ $checkGrubby -eq 0 ]; then
   %{_grubby} --args='%{_dracutopts}' --remove-args='%{_dracutopts_rm}' &>/dev/null
   %if 0%{?fedora} || 0%{?rhel} >= 7
-  if [ ! -f /run/ostree-booted ]; then
+  if [ ! -f /run/ostree-booted ] && [ -f %{_sysconfdir}/default/grub ]; then
     . %{_sysconfdir}/default/grub
     if [ -z "${GRUB_CMDLINE_LINUX}" ]; then
       echo GRUB_CMDLINE_LINUX="%{_dracutopts}" >> %{_sysconfdir}/default/grub
