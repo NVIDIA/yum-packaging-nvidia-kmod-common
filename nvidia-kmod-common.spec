@@ -83,23 +83,29 @@ install -p -m 0644 %{SOURCE24} %{buildroot}%{_dracut_conf_d}/
 install -p -m 644 %{SOURCE21} %{buildroot}%{_udevrulesdir}
 
 %post
-%{_grubby} --args='%{_dracutopts}' --remove-args='%{_dracutopts_rm}' &>/dev/null
-%if 0%{?fedora} || 0%{?rhel} >= 7
-if [ ! -f /run/ostree-booted ]; then
-  . %{_sysconfdir}/default/grub
-  if [ -z "${GRUB_CMDLINE_LINUX}" ]; then
-    echo GRUB_CMDLINE_LINUX="%{_dracutopts}" >> %{_sysconfdir}/default/grub
-  else
-    for param in %{_dracutopts}; do
-      echo ${GRUB_CMDLINE_LINUX} | grep -q $param
-      [ $? -eq 1 ] && GRUB_CMDLINE_LINUX="${GRUB_CMDLINE_LINUX} ${param}"
-    done
-    for param in %{_dracutopts_rm}; do
-      echo ${GRUB_CMDLINE_LINUX} | grep -q $param
-      [ $? -eq 0 ] && GRUB_CMDLINE_LINUX="$(echo ${GRUB_CMDLINE_LINUX} | sed -e "s/$param//g")"
-    done
-    sed -i -e "s|^GRUB_CMDLINE_LINUX=.*|GRUB_CMDLINE_LINUX=\"${GRUB_CMDLINE_LINUX}\"|g" %{_sysconfdir}/default/grub
+type -p grubby && grubby --help >/dev/null
+checkGrubby=$?
+if [ $checkGrubby -eq 0 ]; then
+  %{_grubby} --args='%{_dracutopts}' --remove-args='%{_dracutopts_rm}' &>/dev/null
+  %if 0%{?fedora} || 0%{?rhel} >= 7
+  if [ ! -f /run/ostree-booted ]; then
+    . %{_sysconfdir}/default/grub
+    if [ -z "${GRUB_CMDLINE_LINUX}" ]; then
+      echo GRUB_CMDLINE_LINUX="%{_dracutopts}" >> %{_sysconfdir}/default/grub
+    else
+      for param in %{_dracutopts}; do
+        echo ${GRUB_CMDLINE_LINUX} | grep -q $param
+        [ $? -eq 1 ] && GRUB_CMDLINE_LINUX="${GRUB_CMDLINE_LINUX} ${param}"
+      done
+      for param in %{_dracutopts_rm}; do
+        echo ${GRUB_CMDLINE_LINUX} | grep -q $param
+        [ $? -eq 0 ] && GRUB_CMDLINE_LINUX="$(echo ${GRUB_CMDLINE_LINUX} | sed -e "s/$param//g")"
+      done
+      sed -i -e "s|^GRUB_CMDLINE_LINUX=.*|GRUB_CMDLINE_LINUX=\"${GRUB_CMDLINE_LINUX}\"|g" %{_sysconfdir}/default/grub
+    fi
   fi
+else
+  echo "Skipping grubby, running in Anaconda"
 fi
 %endif
 
