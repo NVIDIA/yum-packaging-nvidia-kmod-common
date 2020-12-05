@@ -38,6 +38,9 @@ URL:            http://www.nvidia.com/object/unix.html
 
 BuildArch:      noarch
 
+Source0:        %{dkms_name}-kmod-%{version}-x86_64.tar.xz
+Source2:        %{dkms_name}-kmod-%{version}-ppc64le.tar.xz
+Source3:        %{dkms_name}-kmod-%{version}-aarch64.tar.xz
 Source20:       nvidia.conf
 Source21:       60-nvidia.rules
 Source24:       99-nvidia.conf
@@ -67,6 +70,9 @@ mkdir -p %{buildroot}%{_dracut_conf_d}/
 mkdir -p %{buildroot}%{_unitdir}
 mkdir -p %{buildroot}%{_presetdir}
 %endif
+# Copy header files
+mkdir -p %{buildroot}%{_usrsrc}/nvidia-%{version}/
+cp -fr nvidia-kmod-%{version}-*/kernel/nvidia/*.h %{buildroot}%{_usrsrc}/nvidia-%{version}/
 
 # Blacklist nouveau and load nvidia-uvm:
 install -p -m 0644 %{SOURCE20} %{buildroot}%{_modprobe_d}/
@@ -122,6 +128,7 @@ fi ||:
 %{_dracut_conf_d}/99-nvidia.conf
 %{_modprobe_d}/nvidia.conf
 %{_udevrulesdir}/60-nvidia.rules
+%{_usrsrc}/nvidia-%{version}
 
 %changelog
 * Sat May 18 2019 Simone Caronni <negativo17@gmail.com> - 3:430.14-1
