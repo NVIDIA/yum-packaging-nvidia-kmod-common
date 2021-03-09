@@ -7,7 +7,7 @@
 
 Packaging templates for `yum` and `dnf` based Linux distros providing common configuration files for NVIDIA driver packages.
 
-The `main` branch contains this README. The `.spec`, `.conf`, and `.sh` files can be found in the appropriate [rhel7](../../tree/rhel7), [rhel8](../../tree/rhel8), and [fedora](../../tree/fedora) branches.
+The `main` branch contains this README. The `.spec`, `.conf`, and `.rules` files can be found in the appropriate [rhel7](../../tree/rhel7), [rhel8](../../tree/rhel8), and [fedora](../../tree/fedora) branches.
 
 ## Table of Contents
 
