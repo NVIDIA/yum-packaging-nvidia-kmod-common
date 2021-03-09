@@ -1,3 +1,14 @@
+%if 0%{?rhel} == 6
+# RHEL 6 does not have _udevrulesdir defined:
+%global _udevrulesdir   %{_prefix}/lib/udev/rules.d/
+%global _dracutopts     nouveau.modeset=0 rdblacklist=nouveau
+%global _dracutopts_rm  nomodeset vga=normal
+%global _dracut_conf_d	%{_sysconfdir}/dracut.conf.d
+%global _modprobe_d     %{_sysconfdir}/modprobe.d/
+# It's not _sbindir:
+%global _grubby         /sbin/grubby --grub --update-kernel=ALL
+%endif
+
 %if 0%{?rhel} == 7
 %global _dracutopts     nouveau.modeset=0 rd.driver.blacklist=nouveau nvidia-drm.modeset=1
 %global _dracutopts_rm  nomodeset gfxpayload=vga=normal
@@ -18,7 +29,7 @@
 %endif
 
 Name:           nvidia-kmod-common
-Version:        460.56
+Version:        435.21
 Release:        1%{?dist}
 Summary:        Common file for NVIDIA's proprietary driver kernel modules
 Epoch:          3
@@ -32,15 +43,17 @@ Source21:       60-nvidia.rules
 Source24:       99-nvidia.conf
 
 # UDev rule location (_udevrulesdir) and systemd macros:
-%if 0%{?fedora}
+%if 0%{?fedora} >= 30
 BuildRequires:  systemd-rpm-macros
-%else
+%endif
+%if 0%{?fedora} == 29 || 0%{?rhel} == 7 || 0%{?rhel} == 8
 BuildRequires:  systemd
 %endif
 
 Requires:       grubby
 Requires:       nvidia-kmod = %{?epoch:%{epoch}:}%{version}
 Provides:       nvidia-kmod-common = %{?epoch:%{epoch}:}%{version}
+Requires:       nvidia-driver = %{?epoch:%{epoch}:}%{version}
 Obsoletes:      cuda-nvidia-kmod-common
 
 %description
@@ -53,6 +66,10 @@ package variants.
 mkdir -p %{buildroot}%{_udevrulesdir}
 mkdir -p %{buildroot}%{_modprobe_d}/
 mkdir -p %{buildroot}%{_dracut_conf_d}/
+%if 0%{?fedora} || 0%{?rhel} >= 8
+mkdir -p %{buildroot}%{_unitdir}
+mkdir -p %{buildroot}%{_presetdir}
+%endif
 
 # Blacklist nouveau and load nvidia-uvm:
 install -p -m 0644 %{SOURCE20} %{buildroot}%{_modprobe_d}/
@@ -66,27 +83,36 @@ install -p -m 0644 %{SOURCE24} %{buildroot}%{_dracut_conf_d}/
 install -p -m 644 %{SOURCE21} %{buildroot}%{_udevrulesdir}
 
 %post
-%{_grubby} --args='%{_dracutopts}' --remove-args='%{_dracutopts_rm}' &>/dev/null
-if [ ! -f /run/ostree-booted ]; then
-  . %{_sysconfdir}/default/grub
-  if [ -z "${GRUB_CMDLINE_LINUX}" ]; then
-    echo GRUB_CMDLINE_LINUX="%{_dracutopts}" >> %{_sysconfdir}/default/grub
-  else
-    for param in %{_dracutopts}; do
-      echo ${GRUB_CMDLINE_LINUX} | grep -q $param
-      [ $? -eq 1 ] && GRUB_CMDLINE_LINUX="${GRUB_CMDLINE_LINUX} ${param}"
-    done
-    for param in %{_dracutopts_rm}; do
-      echo ${GRUB_CMDLINE_LINUX} | grep -q $param
-      [ $? -eq 0 ] && GRUB_CMDLINE_LINUX="$(echo ${GRUB_CMDLINE_LINUX} | sed -e "s/$param//g")"
-    done
-    sed -i -e "s|^GRUB_CMDLINE_LINUX=.*|GRUB_CMDLINE_LINUX=\"${GRUB_CMDLINE_LINUX}\"|g" %{_sysconfdir}/default/grub
+type -p grubby && grubby --help >/dev/null
+checkGrubby=$?
+if [ $checkGrubby -eq 0 ]; then
+  %{_grubby} --args='%{_dracutopts}' --remove-args='%{_dracutopts_rm}' &>/dev/null
+  %if 0%{?fedora} || 0%{?rhel} >= 7
+  if [ ! -f /run/ostree-booted ] && [ -f %{_sysconfdir}/default/grub ]; then
+    . %{_sysconfdir}/default/grub
+    if [ -z "${GRUB_CMDLINE_LINUX}" ]; then
+      echo GRUB_CMDLINE_LINUX="%{_dracutopts}" >> %{_sysconfdir}/default/grub
+    else
+      for param in %{_dracutopts}; do
+        echo ${GRUB_CMDLINE_LINUX} | grep -q $param
+        [ $? -eq 1 ] && GRUB_CMDLINE_LINUX="${GRUB_CMDLINE_LINUX} ${param}"
+      done
+      for param in %{_dracutopts_rm}; do
+        echo ${GRUB_CMDLINE_LINUX} | grep -q $param
+        [ $? -eq 0 ] && GRUB_CMDLINE_LINUX="$(echo ${GRUB_CMDLINE_LINUX} | sed -e "s/$param//g")"
+      done
+      sed -i -e "s|^GRUB_CMDLINE_LINUX=.*|GRUB_CMDLINE_LINUX=\"${GRUB_CMDLINE_LINUX}\"|g" %{_sysconfdir}/default/grub
+    fi
   fi
+else
+  echo "Skipping grubby, running in Anaconda"
 fi
+%endif
 
 %preun
 if [ "$1" -eq "0" ]; then
   %{_grubby} --remove-args='%{_dracutopts}' &>/dev/null
+%if 0%{?fedora} || 0%{?rhel} >= 7
   if [ ! -f /run/ostree-booted ]; then
     for param in %{_dracutopts}; do
       echo ${GRUB_CMDLINE_LINUX} | grep -q $param
@@ -94,7 +120,16 @@ if [ "$1" -eq "0" ]; then
     done
     sed -i -e "s|^GRUB_CMDLINE_LINUX=.*|GRUB_CMDLINE_LINUX=\"${GRUB_CMDLINE_LINUX}\"|g" %{_sysconfdir}/default/grub
   fi
+%endif
 fi ||:
+%if 0%{?fedora} || 0%{?rhel} >= 8
+%systemd_preun nvidia-fallback.service
+%endif
+
+%if 0%{?fedora} || 0%{?rhel} >= 8
+%postun
+%systemd_postun nvidia-fallback.service
+%endif
 
 %files
 %{_dracut_conf_d}/99-nvidia.conf
@@ -102,58 +137,6 @@ fi ||:
 %{_udevrulesdir}/60-nvidia.rules
 
 %changelog
-* Mon Mar 01 2021 Simone Caronni <negativo17@gmail.com> - 3:460.56-1
-- Update to 460.56.
-
-* Wed Jan 27 2021 Simone Caronni <negativo17@gmail.com> - 3:460.39-1
-- Update to 460.39.
-
-* Thu Jan  7 2021 Simone Caronni <negativo17@gmail.com> - 3:460.32.03-1
-- Update to 460.32.03.
-
-* Sun Dec 20 2020 Simone Caronni <negativo17@gmail.com> - 3:460.27.04-1
-- Update to 460.27.04.
-- Update comments in modprobe file.
-
-* Mon Dec 07 2020 Simone Caronni <negativo17@gmail.com> - 3:450.80.02-2
-- Remove CentOS/RHEL 6 support.
-
-* Tue Oct 06 2020 Simone Caronni <negativo17@gmail.com> - 3:450.80.02-1
-- Update to 450.80.02.
-
-* Thu Aug 20 2020 Simone Caronni <negativo17@gmail.com> - 3:450.66-1
-- Update to 450.66.
-
-* Fri Jul 10 2020 Simone Caronni <negativo17@gmail.com> - 3:450.57-1
-- Update to 450.57.
-
-* Thu Jun 25 2020 Simone Caronni <negativo17@gmail.com> - 3:440.100-1
-- Update to 440.100.
-
-* Thu Apr 09 2020 Simone Caronni <negativo17@gmail.com> - 3:440.82-1
-- Update to 440.82.
-
-* Fri Feb 28 2020 Simone Caronni <negativo17@gmail.com> - 3:440.64-1
-- Update to 440.64.
-
-* Tue Feb 04 2020 Simone Caronni <negativo17@gmail.com> - 3:440.59-1
-- Update to 440.59.
-
-* Sat Dec 14 2019 Simone Caronni <negativo17@gmail.com> - 3:440.44-1
-- Update to 440.44.
-
-* Sat Nov 30 2019 Simone Caronni <negativo17@gmail.com> - 3:440.36-1
-- Update to 440.36.
-
-* Mon Nov 11 2019 Simone Caronni <negativo17@gmail.com> - 3:440.31-2
-- Fix udev rules synax (thanks Leigh)
-
-* Sat Nov 09 2019 Simone Caronni <negativo17@gmail.com> - 3:440.31-1
-- Update to 440.31.
-
-* Thu Oct 17 2019 Simone Caronni <negativo17@gmail.com> - 3:440.26-1
-- Update to 440.26.
-
 * Tue Oct 01 2019 Simone Caronni <negativo17@gmail.com> - 3:435.21-3
 - Remove workaround for onboard GPU devices.
 - Fix typo on udev character device rules (thanks tbaederr).
