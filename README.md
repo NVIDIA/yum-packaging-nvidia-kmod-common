@@ -16,6 +16,8 @@ The `main` branch contains this README. The `.spec`, `.conf`, and `.rules` files
 - [Prerequisites](#Prerequisites)
   * [Clone this git repository](#Clone-this-git-repository)
   * [Install build dependencies](#Install-build-dependencies)
+- [Building with script](#Building-with-script)
+- [Building Manually](#Building-Manually)
 - [Related](#Related)
   * [DKMS nvidia](#DKMS-nvidia)
   * [NVIDIA driver](#NVIDIA-driver)
@@ -74,6 +76,49 @@ git clone -b ${branch} https://github.com/NVIDIA/yum-packaging-nvidia-kmod-commo
 # Packaging
 yum install rpm-build
 ```
+
+## Building with script
+
+### Fetch script from `main` branch
+
+```shell
+cd yum-packaging-nvidia-kmod-common
+git checkout remotes/origin/main -- build.sh
+```
+
+### Usage
+
+> _note:_ runfile is only used to determine version
+
+```shell
+./build.sh [$version | path/to/*.run]
+> ex: time ./build.sh 450.102.04
+> ex: time ./build.sh ~/Downloads/NVIDIA-Linux-x86_64-450.102.04.run
+```
+
+
+## Building Manually
+
+### Packaging
+
+```shell
+mkdir BUILD BUILDROOT RPMS SRPMS SOURCES SPECS
+cp 60-nvidia.rules SOURCES/
+cp 99-nvidia.conf SOURCES/
+cp nvidia.conf SOURCES/
+cp nvidia-kmod-common.spec SPECS/
+
+rpmbuild \
+    --define "%_topdir $(pwd)" \
+    --define "debug_package %{nil}" \
+    --define "version $version" \
+    --define "epoch 3" \
+    --target "noarch" \
+    -v -bb SPECS/dkms-nvidia.spec
+```
+
+> _note_: `noarch` as only text files, works for any architecture
+
 
 ## Related
 
