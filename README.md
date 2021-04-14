@@ -114,7 +114,7 @@ rpmbuild \
     --define "version $version" \
     --define "epoch 3" \
     --target "noarch" \
-    -v -bb SPECS/dkms-nvidia.spec
+    -v -bb SPECS/nvidia-kmod-common.spec
 ```
 
 > _note_: `noarch` as only text files, works for any architecture
