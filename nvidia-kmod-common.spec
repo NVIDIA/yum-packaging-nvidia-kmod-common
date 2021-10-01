@@ -29,7 +29,7 @@
 %endif
 
 Name:           nvidia-kmod-common
-Version:        %{?version}%{?!version:435.21}
+Version:        430.14
 Release:        1%{?dist}
 Summary:        Common file for NVIDIA's proprietary driver kernel modules
 Epoch:          3
@@ -42,11 +42,8 @@ Source20:       nvidia.conf
 Source21:       60-nvidia.rules
 Source24:       99-nvidia.conf
 
+%if 0%{?fedora} || 0%{?rhel} >= 7
 # UDev rule location (_udevrulesdir) and systemd macros:
-%if 0%{?fedora} >= 30
-BuildRequires:  systemd-rpm-macros
-%endif
-%if 0%{?fedora} == 29 || 0%{?rhel} == 7 || 0%{?rhel} == 8
 BuildRequires:  systemd
 %endif
 
@@ -83,29 +80,21 @@ install -p -m 0644 %{SOURCE24} %{buildroot}%{_dracut_conf_d}/
 install -p -m 644 %{SOURCE21} %{buildroot}%{_udevrulesdir}
 
 %post
-type -p grubby && grubby --help >/dev/null
-checkGrubby=$?
-if [ $checkGrubby -eq 0 ]; then
-  %{_grubby} --args='%{_dracutopts}' --remove-args='%{_dracutopts_rm}' &>/dev/null
-  %if 0%{?fedora} || 0%{?rhel} >= 7
-  if [ ! -f /run/ostree-booted ] && [ -f %{_sysconfdir}/default/grub ]; then
-    . %{_sysconfdir}/default/grub
-    if [ -z "${GRUB_CMDLINE_LINUX}" ]; then
-      echo GRUB_CMDLINE_LINUX="%{_dracutopts}" >> %{_sysconfdir}/default/grub
-    else
-      for param in %{_dracutopts}; do
-        echo ${GRUB_CMDLINE_LINUX} | grep -q $param
-        [ $? -eq 1 ] && GRUB_CMDLINE_LINUX="${GRUB_CMDLINE_LINUX} ${param}"
-      done
-      for param in %{_dracutopts_rm}; do
-        echo ${GRUB_CMDLINE_LINUX} | grep -q $param
-        [ $? -eq 0 ] && GRUB_CMDLINE_LINUX="$(echo ${GRUB_CMDLINE_LINUX} | sed -e "s/$param//g")"
-      done
-      sed -i -e "s|^GRUB_CMDLINE_LINUX=.*|GRUB_CMDLINE_LINUX=\"${GRUB_CMDLINE_LINUX}\"|g" %{_sysconfdir}/default/grub
-    fi
-  fi
+%{_grubby} --args='%{_dracutopts}' --remove-args='%{_dracutopts_rm}' &>/dev/null
+%if 0%{?fedora} || 0%{?rhel} >= 7
+. %{_sysconfdir}/default/grub
+if [ -z "${GRUB_CMDLINE_LINUX}" ]; then
+  echo GRUB_CMDLINE_LINUX="%{_dracutopts}" >> %{_sysconfdir}/default/grub
 else
-  echo "Skipping grubby, running in Anaconda"
+  for param in %{_dracutopts}; do
+    echo ${GRUB_CMDLINE_LINUX} | grep -q $param
+    [ $? -eq 1 ] && GRUB_CMDLINE_LINUX="${GRUB_CMDLINE_LINUX} ${param}"
+  done
+  for param in %{_dracutopts_rm}; do
+    echo ${GRUB_CMDLINE_LINUX} | grep -q $param
+    [ $? -eq 0 ] && GRUB_CMDLINE_LINUX="$(echo ${GRUB_CMDLINE_LINUX} | sed -e "s/$param//g")"
+  done
+  sed -i -e "s|^GRUB_CMDLINE_LINUX=.*|GRUB_CMDLINE_LINUX=\"${GRUB_CMDLINE_LINUX}\"|g" %{_sysconfdir}/default/grub
 fi
 %endif
 
@@ -113,13 +102,11 @@ fi
 if [ "$1" -eq "0" ]; then
   %{_grubby} --remove-args='%{_dracutopts}' &>/dev/null
 %if 0%{?fedora} || 0%{?rhel} >= 7
-  if [ ! -f /run/ostree-booted ]; then
-    for param in %{_dracutopts}; do
-      echo ${GRUB_CMDLINE_LINUX} | grep -q $param
-      [ $? -eq 0 ] && GRUB_CMDLINE_LINUX="$(echo ${GRUB_CMDLINE_LINUX} | sed -e "s/$param//g")"
-    done
-    sed -i -e "s|^GRUB_CMDLINE_LINUX=.*|GRUB_CMDLINE_LINUX=\"${GRUB_CMDLINE_LINUX}\"|g" %{_sysconfdir}/default/grub
-  fi
+  for param in %{_dracutopts}; do
+    echo ${GRUB_CMDLINE_LINUX} | grep -q $param
+    [ $? -eq 0 ] && GRUB_CMDLINE_LINUX="$(echo ${GRUB_CMDLINE_LINUX} | sed -e "s/$param//g")"
+  done
+  sed -i -e "s|^GRUB_CMDLINE_LINUX=.*|GRUB_CMDLINE_LINUX=\"${GRUB_CMDLINE_LINUX}\"|g" %{_sysconfdir}/default/grub
 %endif
 fi ||:
 %if 0%{?fedora} || 0%{?rhel} >= 8
@@ -137,36 +124,6 @@ fi ||:
 %{_udevrulesdir}/60-nvidia.rules
 
 %changelog
-* Thu Apr 08 2021 Kevin Mittman <kmittman@nvidia.com> - 3:460.00-1
-- Populate version using variable
-
-* Tue Oct 01 2019 Simone Caronni <negativo17@gmail.com> - 3:435.21-3
-- Remove workaround for onboard GPU devices.
-- Fix typo on udev character device rules (thanks tbaederr).
-
-* Tue Oct 01 2019 Simone Caronni <negativo17@gmail.com> - 3:435.21-2
-- Fix build on CentOS/RHEL 8
-
-* Tue Sep 03 2019 Simone Caronni <negativo17@gmail.com> - 3:435.21-1
-- Update to 435.21.
-
-* Thu Aug 22 2019 Simone Caronni <negativo17@gmail.com> - 3:435.17-1
-- Update to 435.17.
-- Add power management functions as per documentation.
-- Require systemd-rpm-macros instead of systemd on Fedora/RHEL 8+.
-
-* Wed Jul 31 2019 Simone Caronni <negativo17@gmail.com> - 3:430.40-1
-- Update to 430.40.
-
-* Fri Jul 12 2019 Simone Caronni <negativo17@gmail.com> - 3:430.34-1
-- Update to 430.34.
-
-* Wed Jun 12 2019 Simone Caronni <negativo17@gmail.com> - 3:430.26-1
-- Update to 430.26.
-
-* Thu Jun 06 2019 Simone Caronni <negativo17@gmail.com> - 3:430.14-2
-- Do not run post/preun scriptlets on Atomic/Silverblue.
-
 * Sat May 18 2019 Simone Caronni <negativo17@gmail.com> - 3:430.14-1
 - Update to 430.14.
 
