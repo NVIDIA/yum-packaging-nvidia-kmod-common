@@ -29,7 +29,7 @@
 %endif
 
 Name:           nvidia-kmod-common
-Version:        %{?version}%{?!version:435.21}
+Version:        435.21
 Release:        1%{?dist}
 Summary:        Common file for NVIDIA's proprietary driver kernel modules
 Epoch:          3
@@ -137,9 +137,6 @@ fi ||:
 %{_udevrulesdir}/60-nvidia.rules
 
 %changelog
-* Thu Apr 08 2021 Kevin Mittman <kmittman@nvidia.com> - 3:460.00-1
-- Populate version using variable
-
 * Tue Oct 01 2019 Simone Caronni <negativo17@gmail.com> - 3:435.21-3
 - Remove workaround for onboard GPU devices.
 - Fix typo on udev character device rules (thanks tbaederr).
