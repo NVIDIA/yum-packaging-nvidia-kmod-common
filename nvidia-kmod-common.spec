@@ -113,7 +113,7 @@ fi
 if [ "$1" -eq "0" ]; then
   %{_grubby} --remove-args='%{_dracutopts}' &>/dev/null
 %if 0%{?fedora} || 0%{?rhel} >= 7
-  if [ ! -f /run/ostree-booted ]; then
+  if [ ! -f /run/ostree-booted ] && [ -f %{_sysconfdir}/default/grub ]; then
     for param in %{_dracutopts}; do
       echo ${GRUB_CMDLINE_LINUX} | grep -q $param
       [ $? -eq 0 ] && GRUB_CMDLINE_LINUX="$(echo ${GRUB_CMDLINE_LINUX} | sed -e "s/$param//g")"
