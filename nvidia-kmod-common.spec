@@ -29,8 +29,8 @@
 %endif
 
 Name:           nvidia-kmod-common
-Version:        435.21
-Release:        4%{?dist}
+Version:        %{?version}%{?!version:435.21}
+Release:        1%{?dist}
 Summary:        Common file for NVIDIA's proprietary driver kernel modules
 Epoch:          3
 License:        NVIDIA License
@@ -138,10 +138,13 @@ fi ||:
 %{_udevrulesdir}/60-nvidia.rules
 
 %changelog
-* Fri Dec 10 2021 Jamie Nguyen <jamien@nvidia.com> - 3:435.21-4
+* Fri Dec 10 2021 Jamie Nguyen <jamien@nvidia.com> - 3:495.00-1
 - Source grub file before rewriting GRUB_CMDLINE_LINUX in %preun. Without
   this, we are clearing out GRUB_CMDLINE_LINUX when this package gets
   removed.
+
+* Thu Apr 08 2021 Kevin Mittman <kmittman@nvidia.com> - 3:460.00-1
+- Populate version using variable
 
 * Tue Oct 01 2019 Simone Caronni <negativo17@gmail.com> - 3:435.21-3
 - Remove workaround for onboard GPU devices.
