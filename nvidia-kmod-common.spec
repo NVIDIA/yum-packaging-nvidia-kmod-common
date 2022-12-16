@@ -91,7 +91,7 @@ if [ $checkGrubby -eq 0 ]; then
   if [ ! -f /run/ostree-booted ] && [ -f %{_sysconfdir}/default/grub ]; then
     . %{_sysconfdir}/default/grub
     if [ -z "${GRUB_CMDLINE_LINUX}" ]; then
-      echo GRUB_CMDLINE_LINUX="%{_dracutopts}" >> %{_sysconfdir}/default/grub
+      echo GRUB_CMDLINE_LINUX=\"%{_dracutopts}\" >> %{_sysconfdir}/default/grub
     else
       for param in %{_dracutopts}; do
         echo ${GRUB_CMDLINE_LINUX} | grep -q $param
