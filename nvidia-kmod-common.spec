@@ -123,14 +123,6 @@ if [ "$1" -eq "0" ]; then
   fi
 %endif
 fi ||:
-%if 0%{?fedora} || 0%{?rhel} >= 8
-%systemd_preun nvidia-fallback.service
-%endif
-
-%if 0%{?fedora} || 0%{?rhel} >= 8
-%postun
-%systemd_postun nvidia-fallback.service
-%endif
 
 %files
 %{_dracut_conf_d}/99-nvidia.conf
